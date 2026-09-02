@@ -16,7 +16,6 @@ from app.models import PaymentRecoveryEvent
 from app.ai_engine import generate_recovery_decision
 from app.guardrails import apply_safety_guardrails
 from app.actions import generate_recovery_payment_link
-from app.email_service import send_recovery_email
 
 app = FastAPI(title="Foura AI Revenue Recovery Agent")
 
@@ -297,6 +296,7 @@ async def _process_recovery(
         print(f"[GUARDRAIL] Triggered: {override}", flush=True)
 
     payment_link = ""
+    payment_link = ""
     if final_decision["recommended_action"] != "HARD_FAIL_ABANDON":
         payment_link = generate_recovery_payment_link(
             amount=amount,
@@ -304,17 +304,6 @@ async def _process_recovery(
             customer_email=contact_email,
             customer_contact="+919876543210",
             description=f"Foura Recovery for order {payment_id}"
-        )
-        
-        custom_msg = final_decision.get("custom_message_payload") or "Your payment was interrupted. Tap below to complete it safely."
-        subject = f"Action needed for your {cart_category} order"
-        await send_recovery_email(
-            to_email=contact_email,
-            subject=subject,
-            body_text=custom_msg,
-            amount_inr=amount / 100,
-            payment_link=payment_link,
-            ai_reasoning=final_decision.get("ai_reasoning", "Autonomous recovery intervention")
         )
     
     event = PaymentRecoveryEvent(

@@ -880,12 +880,11 @@ function App() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                           <span className="form-label" style={{ margin: 0 }}>Message Preview</span>
                           <div style={{ display: 'flex', gap: '4px' }}>
-                            {['whatsapp', 'email', 'json'].map(m => (
+                            {['whatsapp', 'json'].map(m => (
                               <button key={m} className={`tag ${previewMode === m ? 'tag-black' : ''}`} style={{ cursor: 'pointer', border: 'none' }} onClick={() => setPreviewMode(m)}>
                                 {m === 'whatsapp' && <MessageSquare size={10} />}
-                                {m === 'email' && <Mail size={10} />}
                                 {m === 'json' && <Code2 size={10} />}
-                                {m.charAt(0).toUpperCase() + m.slice(1)}
+                                {m === 'whatsapp' ? 'WhatsApp Concierge' : 'Raw JSON'}
                               </button>
                             ))}
                           </div>
@@ -900,15 +899,6 @@ function App() {
                               </a>
                               <span className="text-xs muted">✓✓</span>
                             </div>
-                          </div>
-                        )}
-
-                        {previewMode === 'email' && (
-                          <div style={{ background: '#F8F8F8', padding: '0.85rem', borderRadius: '8px', fontSize: '0.84rem', lineHeight: 1.6, border: '1px solid var(--border)' }}>
-                            <div className="text-xs muted" style={{ marginBottom: '0.4rem' }}>
-                              To: <strong style={{ color: 'var(--text)' }}>{selected.customer_email}</strong>
-                            </div>
-                            {selected.personalized_message || 'Your payment was paused.'}
                           </div>
                         )}
 
@@ -1315,9 +1305,9 @@ function App() {
                     <div>
                       <label className="form-label">Default Recovery Dispatcher</label>
                       <select className="form-input" value={settings.default_channel} onChange={e => setSettings({ ...settings, default_channel: e.target.value })}>
-                        <option value="multi_channel">Multi-Channel (WhatsApp + Email + Voice)</option>
-                        <option value="whatsapp">WhatsApp Primary</option>
-                        <option value="email">Email Primary</option>
+                        <option value="whatsapp_rail">WhatsApp Concierge + Alternate Rail Switch</option>
+                        <option value="direct_link">Direct 1-Click Recovery Payment Link</option>
+                        <option value="voice_synthesis">Voice Concierge Synthesis + WhatsApp</option>
                       </select>
                     </div>
                     <button className="btn" onClick={saveSettings}>
