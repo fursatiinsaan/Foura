@@ -217,6 +217,19 @@ FAILURE_SCENARIOS = [
         "error_desc": "Google Pay / PhonePe collect request expired before user entered UPI MPIN",
         "bank_health": {"card": 0.95, "upi": 0.72, "netbanking": 0.94},
         "concession": False
+    },
+    {
+        "customer_name": "Arjun Singhania",
+        "email": "arjun.s@fintechcorp.in",
+        "category": "Consumer Electronics",
+        "tier": "Standard Buyer",
+        "amount": 1499900,  # ₹14,999
+        "currency": "INR",
+        "method": "upi",
+        "error_code": "BAD_REQUEST_PAYMENT_PIN_INCORRECT",
+        "error_desc": "Transaction declined by customer bank due to incorrect UPI MPIN entry",
+        "bank_health": {"card": 0.95, "upi": 0.98, "netbanking": 0.94},
+        "concession": False
     }
 ]
 
@@ -290,12 +303,11 @@ async def _process_recovery(
         concession_applied=concession
     )
     
-    final_decision, override = apply_safety_guardrails(ai_decision, retry_count)
+    final_decision, override = apply_safety_guardrails(ai_decision, retry_count, error_code)
     
     if override:
-        print(f"[GUARDRAIL] Triggered: {override}", flush=True)
+        print(f"[GUARDRAIL INTERCEPTION] Triggered: {override}", flush=True)
 
-    payment_link = ""
     payment_link = ""
     if final_decision["recommended_action"] != "HARD_FAIL_ABANDON":
         payment_link = generate_recovery_payment_link(

@@ -480,6 +480,8 @@ function App() {
                         <label className="form-label">Failure Telemetry Vector</label>
                         <select className="form-input" value={simulatedFailureType} onChange={e => setSimulatedFailureType(e.target.value)}>
                           <option value="3DS_OTP_CHALLENGE_TIMEOUT">3DS OTP Challenge Timeout (ISO: 68)</option>
+                          <option value="BAD_REQUEST_PAYMENT_PIN_INCORRECT">Incorrect UPI PIN (Hard Decline - Safety Gated)</option>
+                          <option value="BAD_REQUEST_PAYMENT_CARD_EXPIRED">Expired Card Credential (Non-Recoverable Block)</option>
                           <option value="BANK_NPCI_SWITCH_DEGRADED">Core Switch Packet Loss (ISO: 91)</option>
                           <option value="UPI_PSP_APP_NOT_RESPONDING">UPI Collect Request Expired (ISO: U19)</option>
                           <option value="CHECKOUT_DISMISSED_PRICE_HESITATION">Price Hesitation Abandonment</option>
@@ -1150,6 +1152,7 @@ function App() {
                       <label className="form-label">ISO Error Code Vector</label>
                       <select className="form-input" value={sbFailure} onChange={e => setSbFailure(e.target.value)}>
                         <option value="3DS_OTP_CHALLENGE_TIMEOUT">3DS OTP Challenge Timeout (ISO: 68)</option>
+                        <option value="BAD_REQUEST_PAYMENT_PIN_INCORRECT">Incorrect UPI PIN (Hard Decline - Safety Blocked)</option>
                         <option value="ISSUER_HIGH_VALUE_VELOCITY_CHECK">Issuer Velocity Limit (ISO: 65)</option>
                         <option value="BANK_NPCI_SWITCH_DEGRADED">Core Switch Packet Loss (ISO: 91)</option>
                         <option value="CHECKOUT_DISMISSED_PRICE_HESITATION">Price Hesitation Abandonment</option>
