@@ -52,6 +52,14 @@ const label = (text) => {
   return map[text] || text.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
+const FouraLogo = ({ size = 28, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}>
+    <rect width="32" height="32" rx="8" fill="#0C0D0E" />
+    <path d="M9 8H23V12H13.5V14.5H20.5V18.5H13.5V24H9V8Z" fill="#FFFFFF" />
+    <path d="M19 8L13.5 18.5H17.5L13 24L15 18.5H11L16.5 8H19Z" fill="#0080FF" opacity="0.9" />
+  </svg>
+)
+
 function App() {
   const [tab, setTab] = useState('hub')
   const [currency, setCurrency] = useState('USD')
@@ -317,10 +325,7 @@ function App() {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="#111" />
-            <path d="M8.5 8H23.5V12H13V15H21V19H13V24H8.5V8Z" fill="#FFF" />
-          </svg>
+          <FouraLogo size={32} />
           <div>
             <h1>Foura</h1>
             <span>Autonomous Revenue Engine</span>
@@ -360,7 +365,9 @@ function App() {
               <option value="INR">INR (₹)</option>
               <option value="EUR">EUR (€)</option>
             </select>
-            <div className="avatar">F</div>
+            <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <FouraLogo size={28} />
+            </div>
           </div>
         </header>
 
@@ -606,9 +613,12 @@ function App() {
 
                         {previewMode === 'whatsapp' && (
                           <div style={{ background: '#111B21', color: '#E9EDEF', padding: '0.85rem', borderRadius: '8px', fontSize: '0.84rem', lineHeight: 1.6 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.3rem', marginBottom: '0.5rem' }}>
-                              <span style={{ color: '#00A884', fontWeight: 700 }}>Foura Autonomous Concierge</span>
-                              <span style={{ fontSize: '0.68rem', color: '#8696A0' }}>Official Link</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.4rem', marginBottom: '0.5rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <FouraLogo size={16} />
+                                <span style={{ color: '#00A884', fontWeight: 700 }}>Foura Autonomous Concierge</span>
+                              </div>
+                              <span style={{ fontSize: '0.68rem', color: '#8696A0' }}>Official Verified</span>
                             </div>
                             {selected.personalized_message || 'Your payment was paused. We’ve reserved your order.'}
                             <div style={{ marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
