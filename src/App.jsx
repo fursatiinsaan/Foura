@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
 import axios from 'axios'
 import {
   Activity, Play, Zap, CreditCard, Search,
   CheckCircle, ShieldCheck, RefreshCw, Globe, Terminal,
   Cpu, Sliders, BarChart3, Radio, Download, Wallet,
   ExternalLink, MessageSquare, Code2, Volume2, VolumeX,
-  ShoppingBag, ArrowRight, ShieldAlert, Check,
+  ShoppingBag, ArrowRight, ShieldAlert, Check, ChevronDown, ChevronUp,
   Layers, Lock, Database, Network
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -68,7 +68,7 @@ function App() {
   const [settling, setSettling] = useState(false)
   const [settlementResult, setSettlementResult] = useState(null)
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const [inspectModal, setInspectModal] = useState(null)
+  const [expandedId, setExpandedId] = useState(null)
 
   // Live Checkout Simulation State
   const [checkoutName, setCheckoutName] = useState('Sarah Jenkins')
@@ -663,28 +663,76 @@ function App() {
                       <th>Amount</th>
                       <th>ISO Error Reason</th>
                       <th>Policy Action Taken</th>
-                      <th style={{ textAlign: 'right' }}>Actions</th>
+                      <th style={{ textAlign: 'right' }}>Details</th>
                     </tr>
                   </thead>
                   <tbody>
                     {resolved.length === 0 ? (
                       <tr><td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No recovered transactions yet.</td></tr>
                     ) : resolved.map(c => (
-                      <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => setInspectModal(c)}>
-                        <td className="mono bold">{c.id}</td>
-                        <td>
-                          <div style={{ fontWeight: 700 }}>{c.customer_name}</div>
-                          <div className="text-xs muted">{c.cart_category}</div>
-                        </td>
-                        <td className="tabular bold">{fmt(c.amount, c.currency)}</td>
-                        <td className="secondary">{label(c.error_code)}</td>
-                        <td>{label(c.recommended_action)}</td>
-                        <td style={{ textAlign: 'right' }}>
-                          <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); setInspectModal(c); }}>
-                            Inspect Forensics &rarr;
-                          </button>
-                        </td>
-                      </tr>
+                      <Fragment key={c.id}>
+                        <tr key={c.id} style={{ cursor: 'pointer', background: expandedId === c.id ? '#FAFAFA' : 'transparent' }} onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
+                          <td className="mono bold">{c.id}</td>
+                          <td>
+                            <div style={{ fontWeight: 700 }}>{c.customer_name}</div>
+                            <div className="text-xs muted">{c.cart_category}</div>
+                          </td>
+                          <td className="tabular bold">{fmt(c.amount, c.currency)}</td>
+                          <td className="secondary">{label(c.error_code)}</td>
+                          <td>{label(c.recommended_action)}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); setExpandedId(expandedId === c.id ? null : c.id); }}>
+                              {expandedId === c.id ? <><ChevronUp size={12} /> Hide</> : <><ChevronDown size={12} /> Forensics</>}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedId === c.id && (
+                          <tr style={{ background: '#FAFAFA' }}>
+                            <td colSpan="6" style={{ padding: '0.75rem 1.25rem 1.25rem' }}>
+                              <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div className="grid-4" style={{ gap: '0.75rem' }}>
+                                  <div>
+                                    <div className="form-label">Customer Details</div>
+                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{c.customer_name}</div>
+                                    <div className="text-xs muted">{c.customer_email} · {c.customer_tier}</div>
+                                  </div>
+                                  <div>
+                                    <div className="form-label">ISO 8583 Protocol Error</div>
+                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{label(c.error_code)}</div>
+                                    <div className="text-xs secondary">{c.failure_reason || 'Gateway timeout on core switch'}</div>
+                                  </div>
+                                  <div>
+                                    <div className="form-label">Confidence Score</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{c.recovery_score}%</div>
+                                  </div>
+                                  <div>
+                                    <div className="form-label">Timestamp</div>
+                                    <div className="text-xs muted mono" style={{ marginTop: '4px' }}>{c.created_at || 'Live Telemetry'}</div>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <div className="form-label">LLaMA-3 Diagnostic Reasoning</div>
+                                  <div style={{ background: '#F8F8F8', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
+                                    {c.ai_reasoning || 'Diagnostic root-cause telemetry analyzed.'}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
+                                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
+                                    {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & 5% Margin Limit)'}
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                                      View Payment Link <ExternalLink size={10} />
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
@@ -701,7 +749,7 @@ function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div className="page-header" style={{ marginBottom: 0 }}>
                   <h1>Transactions & Multi-Currency Payouts</h1>
-                  <p>Full immutable audit ledger with instantaneous same-day settlement dispatch. Click any row to inspect forensic history.</p>
+                  <p>Full immutable audit ledger with instantaneous same-day settlement dispatch. Click any row to expand forensic history.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button className="btn btn-outline btn-sm" onClick={exportCsv}><Download size={12} /> Export CSV</button>
@@ -744,26 +792,81 @@ function App() {
                       <th>Amount</th>
                       <th>ISO Error Reason</th>
                       <th>Timestamp</th>
-                      <th style={{ textAlign: 'right' }}>Actions</th>
+                      <th style={{ textAlign: 'right' }}>Forensics</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cases.map(c => (
-                      <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => setInspectModal(c)}>
-                        <td className="mono bold">{c.id}</td>
-                        <td>
-                          <div style={{ fontWeight: 700 }}>{c.customer_name}</div>
-                          <div className="text-xs muted">{c.customer_email}</div>
-                        </td>
-                        <td className="tabular bold">{fmt(c.amount, c.currency)}</td>
-                        <td className="secondary">{label(c.error_code)}</td>
-                        <td className="text-xs muted">{c.created_at || 'Live Telemetry'}</td>
-                        <td style={{ textAlign: 'right' }}>
-                          <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); setInspectModal(c); }}>
-                            Inspect &rarr;
-                          </button>
-                        </td>
-                      </tr>
+                      <Fragment key={c.id}>
+                        <tr key={c.id} style={{ cursor: 'pointer', background: expandedId === c.id ? '#FAFAFA' : 'transparent' }} onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}>
+                          <td className="mono bold">{c.id}</td>
+                          <td>
+                            <div style={{ fontWeight: 700 }}>{c.customer_name}</div>
+                            <div className="text-xs muted">{c.customer_email}</div>
+                          </td>
+                          <td className="tabular bold">{fmt(c.amount, c.currency)}</td>
+                          <td className="secondary">{label(c.error_code)}</td>
+                          <td className="text-xs muted">{c.created_at || 'Live Telemetry'}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); setExpandedId(expandedId === c.id ? null : c.id); }}>
+                              {expandedId === c.id ? <><ChevronUp size={12} /> Hide</> : <><ChevronDown size={12} /> Expand</>}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedId === c.id && (
+                          <tr style={{ background: '#FAFAFA' }}>
+                            <td colSpan="6" style={{ padding: '0.75rem 1.25rem 1.25rem' }}>
+                              <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div className="grid-4" style={{ gap: '0.75rem' }}>
+                                  <div>
+                                    <div className="form-label">Customer Profile</div>
+                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{c.customer_name}</div>
+                                    <div className="text-xs muted">{c.customer_email} · {c.customer_tier}</div>
+                                  </div>
+                                  <div>
+                                    <div className="form-label">ISO Error Code</div>
+                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{label(c.error_code)}</div>
+                                    <div className="text-xs secondary">{c.failure_reason}</div>
+                                  </div>
+                                  <div>
+                                    <div className="form-label">Status & Policy</div>
+                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>
+                                      {c.is_recovered ? '✓ Reclaimed' : '● Intercepted'} · {label(c.recommended_action)}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="form-label">Timestamp</div>
+                                    <div className="text-xs muted mono" style={{ marginTop: '4px' }}>{c.created_at || 'Live Telemetry'}</div>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <div className="form-label">LLaMA-3 Diagnostic Reasoning</div>
+                                  <div style={{ background: '#F8F8F8', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
+                                    {c.ai_reasoning || 'Diagnostic root-cause telemetry analyzed.'}
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
+                                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
+                                    {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & Margins Safe)'}
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                                      Payment Link <ExternalLink size={10} />
+                                    </a>
+                                    {!c.is_recovered && (
+                                      <button className="btn btn-sm" onClick={() => recover(c)}>
+                                        <Play size={10} /> Execute Recovery
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
@@ -934,131 +1037,6 @@ function App() {
 
         </div>
       </div>
-
-      {/* ══════════════════════════════════════════════════════════════════
-          FORENSIC TRANSACTION DETAIL INSPECTOR MODAL
-          ══════════════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {inspectModal && (
-          <div className="modal-overlay" onClick={() => setInspectModal(null)}>
-            <motion.div 
-              className="modal-dialog" 
-              initial={{ opacity: 0, scale: 0.96 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              exit={{ opacity: 0, scale: 0.96 }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="modal-header">
-                <div>
-                  <div className="tag mono" style={{ marginBottom: '4px' }}>Transaction Forensics & Trace</div>
-                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>{inspectModal.id}</h2>
-                </div>
-                <button className="btn btn-outline btn-sm" onClick={() => setInspectModal(null)}>✕ Close</button>
-              </div>
-
-              <div className="modal-body">
-                
-                {/* Status & Amount */}
-                <div className="grid-4" style={{ gap: '0.75rem' }}>
-                  <div>
-                    <div className="form-label">Transaction Value</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800 }} className="tabular">{fmt(inspectModal.amount, inspectModal.currency)}</div>
-                  </div>
-                  <div>
-                    <div className="form-label">Status</div>
-                    <div>
-                      {inspectModal.is_recovered ? (
-                        <span className="tag tag-black">✓ Reclaimed</span>
-                      ) : (
-                        <span className="tag">● Intercepted</span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="form-label">Confidence Score</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{inspectModal.recovery_score}%</div>
-                  </div>
-                  <div>
-                    <div className="form-label">Timestamp</div>
-                    <div className="text-xs muted" style={{ marginTop: '4px' }}>{inspectModal.created_at || 'Live Telemetry'}</div>
-                  </div>
-                </div>
-
-                {/* Customer Profile */}
-                <div style={{ background: '#FAFAFA', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.85rem' }}>
-                  <div className="form-label" style={{ marginBottom: '0.4rem' }}>Customer Intelligence</div>
-                  <div className="grid-3" style={{ fontSize: '0.84rem' }}>
-                    <div>Name: <strong style={{ color: 'var(--text)' }}>{inspectModal.customer_name}</strong></div>
-                    <div>Email: <strong style={{ color: 'var(--text)' }}>{inspectModal.customer_email}</strong></div>
-                    <div>Tier: <strong style={{ color: 'var(--text)' }}>{inspectModal.customer_tier}</strong></div>
-                  </div>
-                </div>
-
-                {/* ISO Error & Telemetry */}
-                <div style={{ background: '#FAFAFA', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.85rem' }}>
-                  <div className="form-label" style={{ marginBottom: '0.4rem' }}>ISO 8583 Protocol Error Vector</div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.2rem' }}>{label(inspectModal.error_code)}</div>
-                  <div className="text-xs secondary" style={{ lineHeight: 1.5 }}>
-                    {inspectModal.failure_reason || 'Interrupted during payment switch protocol verification'}
-                  </div>
-                </div>
-
-                {/* AI Root Cause Diagnostic */}
-                <div>
-                  <div className="form-label">LLaMA-3 Reasoning & Diagnostic Trace</div>
-                  <div style={{ background: '#F8F8F8', border: '1px solid var(--border)', padding: '0.85rem', borderRadius: '8px', fontSize: '0.84rem', lineHeight: 1.6 }}>
-                    {inspectModal.ai_reasoning || 'Autonomous diagnostic analysis recorded.'}
-                  </div>
-                </div>
-
-                {/* Policy & Guardrail Verification */}
-                <div className="grid-2">
-                  <div style={{ background: '#FAFAFA', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.85rem' }}>
-                    <div className="form-label">Execution Policy</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{label(inspectModal.recommended_action)}</div>
-                  </div>
-                  <div style={{ background: '#FAFAFA', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.85rem' }}>
-                    <div className="form-label">Guardrail Circuit</div>
-                    <div style={{ fontSize: '0.84rem', fontWeight: 600 }}>
-                      {inspectModal.guardrail_overridden ? (
-                        <span style={{ color: '#DC2626' }}>⛔ Intercepted: {inspectModal.guardrail_overridden}</span>
-                      ) : (
-                        <span style={{ color: '#16A34A' }}>✓ 3-Attempt Cap & Margins Verified</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Direct Payment Link */}
-                <div>
-                  <div className="form-label">Signed Recovery Link (HMAC Idempotent)</div>
-                  <div style={{ background: '#0A0A0A', color: '#00A884', padding: '0.65rem 0.85rem', borderRadius: '6px', fontFamily: 'var(--mono)', fontSize: '0.76rem', wordBreak: 'break-all', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>https://pay.foura.io/recover/{inspectModal.id}</span>
-                    <a href={`https://pay.foura.io/recover/${inspectModal.id}`} target="_blank" rel="noreferrer" style={{ color: '#FFF', marginLeft: '8px', textDecoration: 'underline' }}>
-                      Open
-                    </a>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="modal-footer">
-                <span className="text-xs muted mono">IDEMPOTENCY: SHA256-AUTHENTICATED</span>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn btn-outline btn-sm" onClick={() => setInspectModal(null)}>Close</button>
-                  {!inspectModal.is_recovered && (
-                    <button className="btn btn-sm" onClick={() => { setInspectModal(null); recover(inspectModal); }}>
-                      <Play size={12} /> Execute Recovery
-                    </button>
-                  )}
-                </div>
-              </div>
-
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </div>
   )
 }
