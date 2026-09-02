@@ -6,9 +6,11 @@ import {
   Cpu, Sliders, BarChart3, Radio, Download, Wallet,
   ExternalLink, MessageSquare, Code2, Volume2, VolumeX,
   ShoppingBag, ArrowRight, ShieldAlert, Check, ChevronDown, ChevronUp,
-  Layers, Lock, Database, Network
+  Layers, Lock, Database, Network, Sparkles, CheckCheck, AlertCircle, Flame
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { playRecoveryChime } from './utils/soundEffects'
+import { launchConfetti } from './utils/confetti'
 import './index.css'
 
 const API = 'http://localhost:8003/api'
@@ -60,6 +62,14 @@ const FouraLogo = ({ size = 28, className = "" }) => (
   </svg>
 )
 
+const WITTY_TELEMETRY = [
+  'Intercepted cart drop before the shopper closed their 42nd browser tab',
+  '0.82s SLA: Reclaiming revenue faster than standard 3DS SMS OTP delivery',
+  'LLaMA-3 negotiated with the banking switch and won',
+  'Prevented cart revenue from vanishing into the interbank void',
+  'Bandit algorithm UCB1 calibrated for maximum checkout conversion'
+]
+
 function App() {
   const [tab, setTab] = useState('hub')
   const [currency, setCurrency] = useState('USD')
@@ -75,8 +85,8 @@ function App() {
   const [gmv, setGmv] = useState(250000)
   const [settling, setSettling] = useState(false)
   const [settlementResult, setSettlementResult] = useState(null)
-  const [isSpeaking, setIsSpeaking] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
+  const [soundEnabled, setSoundEnabled] = useState(true)
 
   // Live Checkout Simulation State
   const [checkoutName, setCheckoutName] = useState('Sarah Jenkins')
@@ -85,14 +95,13 @@ function App() {
   const [checkoutStep, setCheckoutStep] = useState('cart')
   const [simulatedFailureType, setSimulatedFailureType] = useState('3DS_OTP_CHALLENGE_TIMEOUT')
   const [latestRecoveredLink, setLatestRecoveredLink] = useState('')
-  const [latestHmacSignature, setLatestHmacSignature] = useState('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
 
   // Settings
   const [settings, setSettings] = useState({ rbi_max_retries: 3, discount_ceiling_pct: 5, default_channel: 'whatsapp_rail' })
 
   // Latency jitter
   const [lat, setLat] = useState({ visa: 142, sepa: 312, upi: 218 })
-  const [engineActivity, setEngineActivity] = useState('Listening on live ISO 8583 payment telemetry stream')
+  const [engineActivity, setEngineActivity] = useState(WITTY_TELEMETRY[0])
 
   const notify = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
@@ -132,7 +141,7 @@ function App() {
     } catch (e) { console.error(e) }
   }, [])
 
-  // ─── Real-time WebSocket connection ───
+  // Real-time WebSocket connection
   useEffect(() => {
     let ws
     let reconnectTimer
@@ -141,7 +150,7 @@ function App() {
       ws = new WebSocket('ws://localhost:8003/ws')
 
       ws.onopen = () => {
-        setEngineActivity('WebSocket telemetry connection established (0ms delay)')
+        setEngineActivity(WITTY_TELEMETRY[1])
         fetchData()
       }
 
@@ -152,8 +161,12 @@ function App() {
             notify(`Intercepted checkout drop: ${data.customer_name} (${fmt(data.amount, data.currency)})`)
           } else if (event === 'recovered') {
             notify(`Transaction Reclaimed: ${data.id}`)
+            if (soundEnabled) playRecoveryChime()
+            launchConfetti()
           } else if (event === 'batch_recovered') {
             notify(`Batch recovered ${data.count} transactions`)
+            if (soundEnabled) playRecoveryChime()
+            launchConfetti()
           }
           fetchData()
         } catch (err) {
@@ -174,7 +187,7 @@ function App() {
       clearTimeout(reconnectTimer)
       if (ws) ws.close()
     }
-  }, [fetchData])
+  }, [fetchData, soundEnabled])
 
   // Latency jitter
   useEffect(() => {
@@ -190,6 +203,7 @@ function App() {
     const targetCurr = cur || currency
     const res = await axios.post(`${API}/simulate-failure?currency=${targetCurr}`)
     await fetchData()
+    setEngineActivity(`Intercepted ${targetCurr} failure for ${res.data.customer}. Routing through LLaMA-3 diagnostician.`)
     notify(`Intercepted ${targetCurr} failure for ${res.data.customer}`)
   }
 
@@ -197,41 +211,49 @@ function App() {
     setSelected(c); setRunning(true)
     
     setStep(1)
-    setEngineActivity(`[Node 01 · Ingestion] Parsing ISO error code for order ${c.id} (${c.currency} ${c.amount})...`)
-    await new Promise(r => setTimeout(r, 350))
+    setEngineActivity(`[Node 01] Parsing ISO error code for order ${c.id} (${c.currency} ${c.amount})...`)
+    await new Promise(r => setTimeout(r, 320))
     
     setStep(2)
-    setEngineActivity(`[Node 02 · Reasoning] LLaMA-3 evaluating root-cause & optimizing recovery policy for ${c.customer_name}...`)
-    await new Promise(r => setTimeout(r, 450))
+    setEngineActivity(`[Node 02] LLaMA-3 evaluating root-cause & optimizing recovery policy for ${c.customer_name}...`)
+    await new Promise(r => setTimeout(r, 420))
     
     setStep(3)
-    setEngineActivity(`[Node 03 · Safety] Enforcing deterministic RBI 3-retry limit & 5% margin concession ceiling...`)
-    await new Promise(r => setTimeout(r, 350))
+    setEngineActivity(`[Node 03] Enforcing deterministic RBI 3-retry cap & 5% gross margin limit...`)
+    await new Promise(r => setTimeout(r, 320))
     
     setStep(4)
-    setEngineActivity(`[Node 04 · Dispatch] Generating HMAC-SHA256 signature and dispatching to customer endpoints...`)
-    await new Promise(r => setTimeout(r, 350))
+    setEngineActivity(`[Node 04] Generating HMAC-SHA256 signature and dispatching to customer endpoints...`)
+    await new Promise(r => setTimeout(r, 320))
 
     await axios.post(`${API}/recoveries/${c.id}/trigger-action`)
     await fetchData()
     setRunning(false)
-    setEngineActivity(`[Execution Complete] Order ${c.id} successfully reclaimed in 0.82s SLA.`)
+    
+    if (soundEnabled) playRecoveryChime()
+    launchConfetti()
+    
+    setEngineActivity(`Order ${c.id} successfully reclaimed in 0.82s SLA. Capital secured.`)
     notify(`Successfully reclaimed ${fmt(c.amount, c.currency)}!`)
   }
 
   const batchRecover = async () => {
     setRunning(true)
-    setEngineActivity(`[Batch Engine] Executing 1-click autonomous recovery across ${pending.length} pending transactions...`)
+    setEngineActivity(`Executing 1-click autonomous recovery across ${pending.length} pending transactions...`)
     const res = await axios.post(`${API}/recoveries/batch-trigger`)
     await fetchData()
     setRunning(false)
-    setEngineActivity(`[Batch Complete] Reclaimed ${res.data.recovered_count || 'all'} transactions across banking rails.`)
+    
+    if (soundEnabled) playRecoveryChime()
+    launchConfetti()
+    
+    setEngineActivity(`Reclaimed ${res.data.recovered_count || 'all'} transactions across banking rails.`)
     notify(`Batch recovered ${res.data.recovered_count || 'all'} transactions!`)
   }
 
   const runLiveCheckoutSimulation = async () => {
     setCheckoutStep('processing')
-    await new Promise(r => setTimeout(r, 600))
+    await new Promise(r => setTimeout(r, 500))
     setCheckoutStep('failed')
 
     const res = await axios.post(`${API}/simulate-failure`, {
@@ -250,32 +272,10 @@ function App() {
     const newCase = cases.find(c => c.id === res.data.id) || { id: res.data.id, amount: res.data.amount, currency: res.data.currency }
     setSelected(newCase)
     setLatestRecoveredLink(`https://pay.foura.io/recover/${res.data.id}`)
-    
-    const fakeSig = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
-    setLatestHmacSignature(fakeSig)
 
-    await new Promise(r => setTimeout(r, 800))
+    await new Promise(r => setTimeout(r, 600))
     await recover(newCase)
     setCheckoutStep('recovered')
-  }
-
-  const speakMessage = (text) => {
-    if (!('speechSynthesis' in window)) {
-      notify('Voice synthesis not supported in this environment.')
-      return
-    }
-    if (isSpeaking) {
-      window.speechSynthesis.cancel()
-      setIsSpeaking(false)
-      return
-    }
-    const utterance = new SpeechSynthesisUtterance(text || "Hello, your checkout transaction was interrupted. We have reserved your cart for 15 minutes.")
-    utterance.rate = 1.0
-    utterance.pitch = 1.0
-    utterance.onend = () => setIsSpeaking(false)
-    utterance.onerror = () => setIsSpeaking(false)
-    setIsSpeaking(true)
-    window.speechSynthesis.speak(utterance)
   }
 
   const settle = async () => {
@@ -283,6 +283,7 @@ function App() {
     const res = await axios.post(`${API}/settlements/instant`, { amount: metrics.revenue_recovered, currency })
     setSettlementResult(res.data)
     setSettling(false)
+    if (soundEnabled) playRecoveryChime()
     notify('Settlement dispatched across banking rails!')
   }
 
@@ -305,9 +306,9 @@ function App() {
   const resolved = cases.filter(c => c.is_recovered)
 
   const navItems = [
-    { id: 'hub', icon: Zap, label: '⚡ Recovery Hub' },
-    { id: 'ledger', icon: CreditCard, label: '📊 Transactions & Payouts' },
-    { id: 'engine', icon: Cpu, label: '🧠 Engine Architecture & ROI' },
+    { id: 'hub', icon: Zap, label: 'Recovery Hub' },
+    { id: 'ledger', icon: CreditCard, label: 'Transactions & Payouts' },
+    { id: 'engine', icon: Cpu, label: 'Engine Architecture & ROI' },
   ]
 
   return (
@@ -356,15 +357,28 @@ function App() {
             <input placeholder="Search telemetry, ISO codes, customer identifiers..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <div className="topbar-controls">
+            
+            {/* Audio Feedback Toggle */}
+            <button 
+              className="chip" 
+              style={{ cursor: 'pointer', background: soundEnabled ? '#F0FDF4' : '#F5F5F5', borderColor: soundEnabled ? '#86EFAC' : 'var(--border)' }}
+              onClick={() => { setSoundEnabled(!soundEnabled); notify(soundEnabled ? 'Chimes Muted' : 'Chimes Enabled') }}
+            >
+              {soundEnabled ? <Volume2 size={12} color="#16A34A" /> : <VolumeX size={12} color="#888" />}
+              <span>{soundEnabled ? 'Audio Chime ON' : 'Muted'}</span>
+            </button>
+
             <div className="chip">
               <span className="dot" />
               Telemetry Socket Active
             </div>
+
             <select className="currency-select" value={currency} onChange={e => setCurrency(e.target.value)}>
               <option value="USD">USD ($)</option>
               <option value="INR">INR (₹)</option>
               <option value="EUR">EUR (€)</option>
             </select>
+            
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
               <FouraLogo size={28} />
             </div>
@@ -374,7 +388,7 @@ function App() {
         <div className="content">
 
           {/* Structured Engine Execution & Telemetry Status Bar */}
-          <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.6rem 0.9rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.65rem 0.95rem', marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.76rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="dot" style={{ background: running ? '#111' : '#10B981', display: 'inline-block' }} />
               <span className="mono" style={{ color: 'var(--text)', fontWeight: 600 }}>
@@ -413,7 +427,8 @@ function App() {
                     className={`btn ${autoPilot ? '' : 'btn-outline'}`}
                     onClick={() => { setAutoPilot(!autoPilot); notify(autoPilot ? 'Auto-pilot paused' : 'Auto-pilot active') }}
                   >
-                    {autoPilot ? '● Auto-Pilot On' : '○ Auto-Pilot'}
+                    <Flame size={13} color={autoPilot ? '#EF4444' : 'currentColor'} />
+                    {autoPilot ? 'Auto-Pilot Active' : 'Auto-Pilot'}
                   </button>
                 </div>
               </div>
@@ -625,7 +640,7 @@ function App() {
                               <a href={latestRecoveredLink || `https://pay.foura.io/recover/${selected.id}`} target="_blank" rel="noreferrer" style={{ color: '#00A884', fontWeight: 700, fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '3px' }}>
                                 Complete Checkout <ExternalLink size={10} />
                               </a>
-                              <span className="text-xs muted">✓✓</span>
+                              <span className="text-xs muted"><CheckCheck size={12} /></span>
                             </div>
                           </div>
                         )}
@@ -640,7 +655,7 @@ function App() {
                       {/* Action */}
                       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span className="text-sm" style={{ fontWeight: 700 }}>
-                          {selected.is_recovered ? '✓ Recovered' : running ? 'Processing...' : '● Pending Action'}
+                          {selected.is_recovered ? 'Reclaimed' : running ? 'Processing...' : 'Pending Action'}
                         </span>
                         {!selected.is_recovered && (
                           <button className="btn" disabled={running} onClick={() => recover(selected)}>
@@ -737,8 +752,9 @@ function App() {
                                     </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
-                                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
-                                        {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & 5% Margin Limit)'}
+                                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        {c.guardrail_overridden ? <AlertCircle size={13} /> : <Check size={13} />}
+                                        {c.guardrail_overridden ? `Intercepted: ${c.guardrail_overridden}` : 'Guardrails Verified (RBI 3-Attempt Cap & 5% Margin Limit)'}
                                       </div>
                                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                         <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
@@ -780,7 +796,7 @@ function App() {
               {/* Settlement Banner */}
               {settlementResult && (
                 <div style={{ background: '#F5F5F5', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.84rem' }}>
-                  <strong>✓ Payout Dispatched:</strong> {settlementResult.settlement_id} — {fmt(settlementResult.amount, settlementResult.currency)} to {settlementResult.destination} (ETA: {settlementResult.payout_eta})
+                  <strong>Payout Dispatched:</strong> {settlementResult.settlement_id} — {fmt(settlementResult.amount, settlementResult.currency)} to {settlementResult.destination} (ETA: {settlementResult.payout_eta})
                 </div>
               )}
 
@@ -859,7 +875,7 @@ function App() {
                                       <div>
                                         <div className="form-label">Status & Policy</div>
                                         <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>
-                                          {c.is_recovered ? '✓ Reclaimed' : '● Intercepted'} · {label(c.recommended_action)}
+                                          {c.is_recovered ? 'Reclaimed' : 'Intercepted'} · {label(c.recommended_action)}
                                         </div>
                                       </div>
                                       <div>
@@ -876,8 +892,9 @@ function App() {
                                     </div>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
-                                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
-                                        {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & Margins Safe)'}
+                                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        {c.guardrail_overridden ? <AlertCircle size={13} /> : <Check size={13} />}
+                                        {c.guardrail_overridden ? `Intercepted: ${c.guardrail_overridden}` : 'Guardrails Verified (RBI 3-Attempt Cap & Margins Safe)'}
                                       </div>
                                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                         <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
@@ -1072,4 +1089,3 @@ function App() {
 }
 
 export default App
-
