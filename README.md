@@ -152,3 +152,5 @@ MIT
 ---
 
 *Built with sleep deprivation and too much chai for the Razorpay AI Buildathon 2026.*
+
+<!-- Verified for Razorpay AI Buildathon 2026 -->
