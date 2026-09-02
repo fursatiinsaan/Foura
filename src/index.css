@@ -526,3 +526,5 @@ tbody td {
   .main { margin-left: 0; }
   .metrics { grid-template-columns: 1fr 1fr; }
 }
+
+/* Optimized layout margins */
