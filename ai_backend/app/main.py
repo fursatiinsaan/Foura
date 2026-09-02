@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.config import settings
-from app.database import engine, Base, get_db
+from app.database import engine, Base, get_db, AsyncSessionLocal
 from app.models import PaymentRecoveryEvent
 from app.ai_engine import generate_recovery_decision
 from app.guardrails import apply_safety_guardrails
@@ -304,10 +304,46 @@ async def razorpay_webhook(request: Request, background_tasks: BackgroundTasks, 
     time_of_month = random.randint(1, 31)
     retry_count = random.randint(0, 2)
     
+    # Check deterministic guardrail rules at the ingestion boundary
+    initial_decision, initial_override = apply_safety_guardrails(
+        {
+            "recommended_action": "PREDICTIVE_RETRY", 
+            "confidence_score": 0.88, 
+            "ai_reasoning": "Ingested via live Razorpay webhook. Diagnostic in progress...",
+            "custom_message_payload": "Your payment was paused. We have reserved your order."
+        },
+        retry_count,
+        error_code
+    )
+
+    placeholder = PaymentRecoveryEvent(
+        id=payment_id,
+        amount=amount,
+        currency=currency,
+        method=method,
+        error_code=error_code,
+        error_description=error_desc,
+        customer_contact=email,
+        historical_retry_count=retry_count,
+        bank_health_snapshot=bank_health,
+        recommended_action=initial_decision["recommended_action"],
+        execution_delay_minutes=0,
+        confidence_score=initial_decision["confidence_score"],
+        ai_reasoning=initial_decision["ai_reasoning"],
+        custom_message=initial_decision.get("custom_message_payload"),
+        guardrail_overridden=initial_override,
+        customer_name=name,
+        cart_category=category,
+        customer_tier="High-Intent Checkout",
+        is_recovered=0
+    )
+    db.add(placeholder)
+    await db.commit()
+
     background_tasks.add_task(
         _process_recovery, payment_id, amount, currency, method,
         error_code, error_desc, email, name, category, "High-Intent Checkout", False,
-        bank_health, time_of_month, retry_count, db
+        bank_health, time_of_month, retry_count
     )
     
     return {"status": "ok", "payment_id": payment_id, "currency": currency}
@@ -315,7 +351,7 @@ async def razorpay_webhook(request: Request, background_tasks: BackgroundTasks, 
 async def _process_recovery(
     payment_id, amount, currency, method, error_code, error_desc, 
     contact_email, customer_name, cart_category, customer_tier, concession,
-    bank_health, time_of_month, retry_count, db
+    bank_health, time_of_month, retry_count
 ):
     """Deep AI Diagnostic -> Guardrail Enforcement -> Real-Time Multi-Currency Recovery Dispatch"""
     curr = currency.upper() if currency else "INR"
@@ -344,24 +380,27 @@ async def _process_recovery(
             description=f"Foura Recovery for order {payment_id}"
         )
     
-    event = PaymentRecoveryEvent(
-        id=payment_id, amount=amount, currency=curr, method=method,
-        error_code=error_code, error_description=error_desc, customer_contact=contact_email,
-        historical_retry_count=retry_count, bank_health_snapshot=bank_health,
-        recommended_action=final_decision["recommended_action"],
-        execution_delay_minutes=final_decision.get("execution_timestamp_delay_minutes", 0),
-        confidence_score=float(final_decision.get("confidence_score", 0.9)),
-        ai_reasoning=final_decision.get("ai_reasoning", ""),
-        custom_message=final_decision.get("custom_message_payload"),
-        guardrail_overridden=override,
-        customer_name=customer_name,
-        cart_category=cart_category,
-        customer_tier=customer_tier,
-        is_recovered=0
-    )
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(PaymentRecoveryEvent).where(PaymentRecoveryEvent.id == payment_id))
+        event = result.scalar_one_or_none()
+        if not event:
+            event = PaymentRecoveryEvent(
+                id=payment_id, amount=amount, currency=curr, method=method,
+                error_code=error_code, error_description=error_desc, customer_contact=contact_email,
+                historical_retry_count=retry_count, bank_health_snapshot=bank_health,
+                customer_name=customer_name, cart_category=cart_category, customer_tier=customer_tier,
+                is_recovered=0
+            )
+            session.add(event)
+        
+        event.recommended_action = final_decision["recommended_action"]
+        event.execution_delay_minutes = final_decision.get("execution_timestamp_delay_minutes", 0)
+        event.confidence_score = float(final_decision.get("confidence_score", 0.9))
+        event.ai_reasoning = final_decision.get("ai_reasoning", "")
+        event.custom_message = final_decision.get("custom_message_payload")
+        event.guardrail_overridden = override
+        await session.commit()
     
-    db.add(event)
-    await db.commit()
     print(f"[RECOVERY] Reclaimed {payment_id} -> {final_decision['recommended_action']} ({curr})", flush=True)
     
     # Push real-time update to all connected clients
@@ -435,6 +474,43 @@ async def simulate_failure(
     
     print(f"[SIMULATE] Injected {payment_id} | {cust_name} | {curr} {amount/100} | {error_code}", flush=True)
     
+    # Check deterministic guardrail rules at the ingestion boundary
+    initial_decision, initial_override = apply_safety_guardrails(
+        {
+            "recommended_action": "PREDICTIVE_RETRY", 
+            "confidence_score": 0.88, 
+            "ai_reasoning": "Diagnostic root-cause analysis in progress...",
+            "custom_message_payload": "Your payment was paused. We have reserved your order."
+        },
+        retry_count,
+        error_code
+    )
+    
+    # Synchronously write placeholder so it's instantly addressable by any subsequent API calls
+    placeholder = PaymentRecoveryEvent(
+        id=payment_id,
+        amount=amount,
+        currency=curr,
+        method=method,
+        error_code=error_code,
+        error_description=error_desc,
+        customer_contact=cust_email,
+        historical_retry_count=retry_count,
+        bank_health_snapshot=bank_health,
+        recommended_action=initial_decision["recommended_action"],
+        execution_delay_minutes=0,
+        confidence_score=initial_decision["confidence_score"],
+        ai_reasoning=initial_decision["ai_reasoning"],
+        custom_message=initial_decision.get("custom_message_payload"),
+        guardrail_overridden=initial_override,
+        customer_name=cust_name,
+        cart_category=category,
+        customer_tier=tier,
+        is_recovered=0
+    )
+    db.add(placeholder)
+    await db.commit()
+    
     background_tasks.add_task(
         _process_recovery, 
         payment_id, 
@@ -450,8 +526,7 @@ async def simulate_failure(
         concession,
         bank_health, 
         time_of_month, 
-        retry_count, 
-        db
+        retry_count
     )
     
     return {
