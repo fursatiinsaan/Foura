@@ -487,16 +487,16 @@ function App() {
               </div>
 
               {/* Main Queue & Diagnostic Inspector Grid */}
-              <div className="grid-sidebar" style={{ marginBottom: '1.5rem' }}>
+              <div className="grid-sidebar" style={{ marginBottom: '1.5rem', minHeight: '560px' }}>
 
                 {/* Queue */}
-                <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '560px' }}>
                   <div className="card-header">
                     <h2><Activity size={14} /> Pending Queue ({pending.length})</h2>
                   </div>
-                  <div style={{ padding: '0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '560px', overflowY: 'auto', flex: 1 }}>
+                  <div style={{ padding: '0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', height: '500px', overflowY: 'auto' }}>
                     {pending.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+                      <div style={{ textAlign: 'center', padding: '6rem 1rem', color: 'var(--text-muted)' }}>
                         <CheckCircle size={28} style={{ margin: '0 auto 0.5rem', display: 'block', opacity: 0.5 }} />
                         All payment rails clear
                       </div>
@@ -523,18 +523,18 @@ function App() {
                 </div>
 
                 {/* Inspector */}
-                <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '560px' }}>
                   <div className="card-header">
                     <h2><Terminal size={14} /> Diagnostic Inspector</h2>
                     {selected && <span className="tag mono">{selected.id}</span>}
                   </div>
 
                   {!selected ? (
-                    <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <div style={{ padding: '6rem 2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                       Select an intercepted payment to inspect diagnostic telemetry.
                     </div>
                   ) : (
-                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
+                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', height: '500px', overflowY: 'auto' }}>
 
                       {/* Summary row */}
                       <div className="grid-4" style={{ gap: '0.75rem' }}>

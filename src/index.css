@@ -416,7 +416,17 @@ tbody td {
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-.grid-sidebar { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; }
+.grid-sidebar { 
+  display: grid; 
+  grid-template-columns: 340px 1fr; 
+  gap: 1.25rem; 
+  align-items: stretch;
+}
+
+@media (max-width: 960px) {
+  .grid-sidebar { grid-template-columns: 1fr; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+}
 
 /* Stepper */
 .stepper {
