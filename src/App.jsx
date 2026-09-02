@@ -696,52 +696,62 @@ function App() {
                             </button>
                           </td>
                         </tr>
-                        {expandedId === c.id && (
-                          <tr style={{ background: '#FAFAFA' }}>
-                            <td colSpan="6" style={{ padding: '0.75rem 1.25rem 1.25rem' }}>
-                              <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <div className="grid-4" style={{ gap: '0.75rem' }}>
-                                  <div>
-                                    <div className="form-label">Customer Details</div>
-                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{c.customer_name}</div>
-                                    <div className="text-xs muted">{c.customer_email} · {c.customer_tier}</div>
-                                  </div>
-                                  <div>
-                                    <div className="form-label">ISO 8583 Protocol Error</div>
-                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{label(c.error_code)}</div>
-                                    <div className="text-xs secondary">{c.failure_reason || 'Gateway timeout on core switch'}</div>
-                                  </div>
-                                  <div>
-                                    <div className="form-label">Confidence Score</div>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{c.recovery_score}%</div>
-                                  </div>
-                                  <div>
-                                    <div className="form-label">Timestamp</div>
-                                    <div className="text-xs muted mono" style={{ marginTop: '4px' }}>{c.created_at || 'Live Telemetry'}</div>
-                                  </div>
-                                </div>
+                        <AnimatePresence>
+                          {expandedId === c.id && (
+                            <tr style={{ background: '#FAFAFA' }}>
+                              <td colSpan="6" style={{ padding: 0 }}>
+                                <motion.div 
+                                  initial={{ opacity: 0, height: 0 }} 
+                                  animate={{ opacity: 1, height: 'auto' }} 
+                                  exit={{ opacity: 0, height: 0 }} 
+                                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} 
+                                  style={{ overflow: 'hidden', padding: '0.75rem 1.25rem 1.25rem' }}
+                                >
+                                  <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    <div className="grid-4" style={{ gap: '0.75rem' }}>
+                                      <div>
+                                        <div className="form-label">Customer Details</div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{c.customer_name}</div>
+                                        <div className="text-xs muted">{c.customer_email} · {c.customer_tier}</div>
+                                      </div>
+                                      <div>
+                                        <div className="form-label">ISO 8583 Protocol Error</div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{label(c.error_code)}</div>
+                                        <div className="text-xs secondary">{c.failure_reason || 'Gateway timeout on core switch'}</div>
+                                      </div>
+                                      <div>
+                                        <div className="form-label">Confidence Score</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{c.recovery_score}%</div>
+                                      </div>
+                                      <div>
+                                        <div className="form-label">Timestamp</div>
+                                        <div className="text-xs muted mono" style={{ marginTop: '4px' }}>{c.created_at || 'Live Telemetry'}</div>
+                                      </div>
+                                    </div>
 
-                                <div>
-                                  <div className="form-label">LLaMA-3 Diagnostic Reasoning</div>
-                                  <div style={{ background: '#F8F8F8', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
-                                    {c.ai_reasoning || 'Diagnostic root-cause telemetry analyzed.'}
-                                  </div>
-                                </div>
+                                    <div>
+                                      <div className="form-label">LLaMA-3 Diagnostic Reasoning</div>
+                                      <div style={{ background: '#F8F8F8', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
+                                        {c.ai_reasoning || 'Diagnostic root-cause telemetry analyzed.'}
+                                      </div>
+                                    </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
-                                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
-                                    {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & 5% Margin Limit)'}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
+                                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
+                                        {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & 5% Margin Limit)'}
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                                          View Payment Link <ExternalLink size={10} />
+                                        </a>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
-                                      View Payment Link <ExternalLink size={10} />
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
+                                </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </AnimatePresence>
                       </Fragment>
                     ))}
                   </tbody>
@@ -823,59 +833,69 @@ function App() {
                             </button>
                           </td>
                         </tr>
-                        {expandedId === c.id && (
-                          <tr style={{ background: '#FAFAFA' }}>
-                            <td colSpan="6" style={{ padding: '0.75rem 1.25rem 1.25rem' }}>
-                              <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <div className="grid-4" style={{ gap: '0.75rem' }}>
-                                  <div>
-                                    <div className="form-label">Customer Profile</div>
-                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{c.customer_name}</div>
-                                    <div className="text-xs muted">{c.customer_email} · {c.customer_tier}</div>
-                                  </div>
-                                  <div>
-                                    <div className="form-label">ISO Error Code</div>
-                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{label(c.error_code)}</div>
-                                    <div className="text-xs secondary">{c.failure_reason}</div>
-                                  </div>
-                                  <div>
-                                    <div className="form-label">Status & Policy</div>
-                                    <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>
-                                      {c.is_recovered ? '✓ Reclaimed' : '● Intercepted'} · {label(c.recommended_action)}
+                        <AnimatePresence>
+                          {expandedId === c.id && (
+                            <tr style={{ background: '#FAFAFA' }}>
+                              <td colSpan="6" style={{ padding: 0 }}>
+                                <motion.div 
+                                  initial={{ opacity: 0, height: 0 }} 
+                                  animate={{ opacity: 1, height: 'auto' }} 
+                                  exit={{ opacity: 0, height: 0 }} 
+                                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} 
+                                  style={{ overflow: 'hidden', padding: '0.75rem 1.25rem 1.25rem' }}
+                                >
+                                  <div style={{ background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    <div className="grid-4" style={{ gap: '0.75rem' }}>
+                                      <div>
+                                        <div className="form-label">Customer Profile</div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{c.customer_name}</div>
+                                        <div className="text-xs muted">{c.customer_email} · {c.customer_tier}</div>
+                                      </div>
+                                      <div>
+                                        <div className="form-label">ISO Error Code</div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>{label(c.error_code)}</div>
+                                        <div className="text-xs secondary">{c.failure_reason}</div>
+                                      </div>
+                                      <div>
+                                        <div className="form-label">Status & Policy</div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.84rem' }}>
+                                          {c.is_recovered ? '✓ Reclaimed' : '● Intercepted'} · {label(c.recommended_action)}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <div className="form-label">Timestamp</div>
+                                        <div className="text-xs muted mono" style={{ marginTop: '4px' }}>{c.created_at || 'Live Telemetry'}</div>
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <div className="form-label">LLaMA-3 Diagnostic Reasoning</div>
+                                      <div style={{ background: '#F8F8F8', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
+                                        {c.ai_reasoning || 'Diagnostic root-cause telemetry analyzed.'}
+                                      </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
+                                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
+                                        {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & Margins Safe)'}
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                                          Payment Link <ExternalLink size={10} />
+                                        </a>
+                                        {!c.is_recovered && (
+                                          <button className="btn btn-sm" onClick={() => recover(c)}>
+                                            <Play size={10} /> Execute Recovery
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                  <div>
-                                    <div className="form-label">Timestamp</div>
-                                    <div className="text-xs muted mono" style={{ marginTop: '4px' }}>{c.created_at || 'Live Telemetry'}</div>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <div className="form-label">LLaMA-3 Diagnostic Reasoning</div>
-                                  <div style={{ background: '#F8F8F8', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.8rem', lineHeight: 1.5 }}>
-                                    {c.ai_reasoning || 'Diagnostic root-cause telemetry analyzed.'}
-                                  </div>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
-                                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: c.guardrail_overridden ? '#DC2626' : '#16A34A' }}>
-                                    {c.guardrail_overridden ? `⛔ Intercepted: ${c.guardrail_overridden}` : '✓ Guardrails Verified (RBI 3-Attempt Cap & Margins Safe)'}
-                                  </div>
-                                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <a href={`https://pay.foura.io/recover/${c.id}`} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
-                                      Payment Link <ExternalLink size={10} />
-                                    </a>
-                                    {!c.is_recovered && (
-                                      <button className="btn btn-sm" onClick={() => recover(c)}>
-                                        <Play size={10} /> Execute Recovery
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
+                                </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </AnimatePresence>
                       </Fragment>
                     ))}
                   </tbody>

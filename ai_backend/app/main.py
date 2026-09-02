@@ -6,7 +6,8 @@ import uuid
 import asyncio
 from typing import Optional, List
 from pydantic import BaseModel
-from fastapi import FastAPI, Depends, Request, HTTPException, BackgroundTasks, Query, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends, Request, HTTPException, BackgroundTasks, Query, WebSocket, WebSocketDisconnect, Response
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
@@ -17,7 +18,32 @@ from app.ai_engine import generate_recovery_decision
 from app.guardrails import apply_safety_guardrails
 from app.actions import generate_recovery_payment_link
 
-app = FastAPI(title="Foura AI Revenue Recovery Agent")
+FOURA_LOGO_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#0C0D0E"/>
+  <rect x="1" y="1" width="62" height="62" rx="15" stroke="#222428" stroke-width="2"/>
+  <path d="M18 16H46V24H27V28.5H41V36.5H27V48H18V16Z" fill="#FFFFFF"/>
+  <path d="M38 16L27 36.5H35L26 48L30 36.5H23L34 16H38Z" fill="#0080FF" opacity="0.9"/>
+</svg>"""
+
+app = FastAPI(
+    title="Foura AI Revenue Recovery Agent",
+    description="Autonomous payment failure interception, LLaMA-3 diagnostics, and sub-second recovery dispatch.",
+    version="2.0.0",
+    docs_url=None,
+    redoc_url=None
+)
+
+@app.get("/logo.svg", include_in_schema=False)
+async def get_logo_svg():
+    return Response(content=FOURA_LOGO_SVG, media_type="image/svg+xml")
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title="Foura AI Revenue Recovery Engine · API Docs",
+        swagger_favicon_url="/logo.svg"
+    )
 
 app.add_middleware(
     CORSMiddleware,
