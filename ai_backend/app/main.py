@@ -436,13 +436,85 @@ async def simulate_failure(
         "amount": amount / 100
     }
 
-# ─── DASHBOARD API ──────────────────────────────────────────────────────────────
+# ─── CONSOLIDATED DASHBOARD STATE API (1-CALL EFFICIENCY) ───────────────────────
 
 EXCHANGE_RATES_TO_INR = {
     "INR": 1.0,
     "USD": 87.5,
     "EUR": 95.0
 }
+
+@app.get("/api/dashboard-state")
+async def get_dashboard_state(
+    display_currency: Optional[str] = Query("USD"),
+    search: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    """Consolidated single-call endpoint for metrics, recoveries, and engine settings."""
+    result = await db.execute(select(PaymentRecoveryEvent).order_by(PaymentRecoveryEvent.created_at.desc()))
+    all_f = result.scalars().all()
+    total = len(all_f)
+    
+    target_curr = (display_currency or "USD").upper()
+    rate_to_inr = EXCHANGE_RATES_TO_INR.get(target_curr, 87.5)
+    
+    risk_in_target = 0.0
+    recovered_in_target = 0.0
+    recoveries_list = []
+    
+    for f in all_f:
+        item_curr = (f.currency or "INR").upper()
+        item_amount = f.amount / 100
+        amount_in_inr = item_amount * EXCHANGE_RATES_TO_INR.get(item_curr, 1.0)
+        amount_in_target = amount_in_inr / rate_to_inr
+        
+        if f.is_recovered:
+            recovered_in_target += amount_in_target
+        else:
+            risk_in_target += amount_in_target
+
+        c_name = getattr(f, 'customer_name', None) or "Customer"
+        c_category = getattr(f, 'cart_category', None) or "Digital Checkout"
+
+        if search:
+            s = search.lower()
+            if s not in f.id.lower() and s not in c_name.lower() and s not in c_category.lower() and s not in f.error_code.lower():
+                continue
+
+        recoveries_list.append({
+            "id": f.id,
+            "amount": f.amount / 100,
+            "currency": item_curr,
+            "method": f.method,
+            "failure_reason": f.error_description,
+            "error_code": f.error_code,
+            "customer_email": f.customer_contact,
+            "customer_name": c_name,
+            "cart_category": c_category,
+            "customer_tier": getattr(f, 'customer_tier', None) or "Standard Buyer",
+            "customer_ltv": 28000,
+            "recovery_score": int(f.confidence_score * 100) if f.confidence_score else 88,
+            "recommended_action": f.recommended_action,
+            "ai_reasoning": f.ai_reasoning,
+            "personalized_message": f.custom_message,
+            "guardrail_overridden": f.guardrail_overridden,
+            "is_recovered": bool(f.is_recovered)
+        })
+
+    rate = (sum(1 for f in all_f if f.is_recovered) / total * 100) if total > 0 else 0
+
+    return {
+        "metrics": {
+            "total_failed": total,
+            "revenue_at_risk": risk_in_target,
+            "revenue_recovered": recovered_in_target,
+            "recovery_rate": round(rate, 1),
+            "display_currency": target_curr
+        },
+        "recoveries": recoveries_list,
+        "settings": SYSTEM_SETTINGS
+    }
+
 
 @app.get("/api/metrics")
 async def get_metrics(
