@@ -2,22 +2,17 @@ import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Razorpay AI Revenue Recovery Agent"
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./recovery_agent.db")
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    RAZORPAY_WEBHOOK_SECRET: str = os.getenv("RAZORPAY_WEBHOOK_SECRET", "super-secret-key")
-    RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", "")
-    RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", "")
-    
-    # Email Settings
-    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
-    SMTP_USER: str = os.getenv("SMTP_USER", "")
-    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "")
-    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+    OPENAI_API_KEY: str = ""
+    RAZORPAY_KEY_ID: str = "rzp_test_TSnnftbAI9CJQs"
+    RAZORPAY_KEY_SECRET: str = "SjYuLIVvekZV0oqIsklF5YTP"
+    RAZORPAY_WEBHOOK_SECRET: str = "super-secret-key"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./recovery_agent.db"
+    DEFAULT_CURRENCY: str = "USD"
+    MAX_RETRIES_LIMIT: int = 3
+    DEFAULT_TIMEOUT_SECONDS: int = 15
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()
