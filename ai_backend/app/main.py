@@ -499,6 +499,9 @@ async def get_dashboard_state(
             "ai_reasoning": f.ai_reasoning,
             "personalized_message": f.custom_message,
             "guardrail_overridden": f.guardrail_overridden,
+            "created_at": f.created_at.strftime("%d %b %Y, %H:%M:%S") if getattr(f, 'created_at', None) else "Live Telemetry",
+            "bank_health": f.bank_health_snapshot or {"card": 0.95, "upi": 0.98, "netbanking": 0.92},
+            "retry_count": getattr(f, 'historical_retry_count', 0) or 0,
             "is_recovered": bool(f.is_recovered)
         })
 
