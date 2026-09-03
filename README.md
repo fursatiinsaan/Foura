@@ -33,11 +33,12 @@
 6. [Quick Start (One-Command Boot)](#quick-start-one-command-boot)
 7. [Repository File Structure](#repository-file-structure)
 8. [API Configuration Guide](#api-configuration-guide)
-9. [Dashboard Walkthrough & Navigation](#dashboard-walkthrough--navigation)
-10. [API & WebSocket Reference](#api--websocket-reference)
+9. [Dashboard Walkthrough and Navigation](#dashboard-walkthrough-and-navigation)
+10. [API and WebSocket Reference](#api-and-websocket-reference)
 11. [Deterministic Safety Guardrails](#deterministic-safety-guardrails)
-12. [Automated Verification & Test Suite](#automated-verification--test-suite)
+12. [Automated Verification and Test Suite](#automated-verification-and-test-suite)
 13. [Razorpay Buildathon Track 03 Alignment](#razorpay-buildathon-track-03-alignment)
+14. [License](#license)
 
 ---
 
@@ -246,7 +247,7 @@ DATABASE_URL=sqlite+aiosqlite:///./recovery_agent.db
 
 ---
 
-## Dashboard Walkthrough & Navigation
+## Dashboard Walkthrough and Navigation
 
 The interface is structured into **3 core operational views**:
 
@@ -262,7 +263,7 @@ The interface is structured into **3 core operational views**:
 
 ---
 
-## API & WebSocket Reference
+## API and WebSocket Reference
 
 ### HTTP Endpoints
 
@@ -307,7 +308,7 @@ Security and compliance rules enforced in `ai_backend/app/guardrails.py`:
 
 ---
 
-## Automated Verification & Test Suite
+## Automated Verification and Test Suite
 
 Run the full automated test suite against the running engine:
 
@@ -357,7 +358,7 @@ npm run build   # Production Vite bundle — built in 125ms
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
