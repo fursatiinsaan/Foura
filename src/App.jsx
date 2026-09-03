@@ -2,11 +2,10 @@ import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
 import axios from 'axios'
 import {
   Activity, Play, Zap, CreditCard, Search,
-  CheckCircle, ShieldCheck, RefreshCw, Globe, Terminal,
-  Cpu, Sliders, BarChart3, Radio, Download, Wallet,
-  ExternalLink, MessageSquare, Code2, Volume2, VolumeX,
-  ShoppingBag, ArrowRight, ShieldAlert, Check, ChevronDown, ChevronUp,
-  Layers, Lock, Database, Network, Sparkles, CheckCheck, AlertCircle, Flame
+  CheckCircle, ShieldCheck, RefreshCw, Terminal,
+  Cpu, Download, Wallet, ExternalLink, MessageSquare, Code2,
+  Volume2, VolumeX, ShoppingBag, Check, ChevronDown, ChevronUp,
+  CheckCheck, AlertCircle, Flame
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { playRecoveryChime } from './utils/soundEffects'
@@ -110,6 +109,7 @@ function App() {
   const selectedRef = useRef(selected)
   const autoPilotRef = useRef(autoPilot)
   const runningRef = useRef(running)
+  const recoverRef = useRef(null)
 
   useEffect(() => { currencyRef.current = currency }, [currency])
   useEffect(() => { searchRef.current = search }, [search])
@@ -136,7 +136,7 @@ function App() {
 
       if (autoPilotRef.current && !runningRef.current) {
         const p = res.data.recoveries.find(x => !x.is_recovered)
-        if (p) recover(p)
+        if (p && recoverRef.current) recoverRef.current(p)
       }
     } catch (e) { console.error(e) }
   }, [])
@@ -197,7 +197,7 @@ function App() {
     return () => clearInterval(t)
   }, [])
 
-  useEffect(() => { fetchData() }, [currency, search])
+  useEffect(() => { fetchData() }, [currency, search, fetchData])
 
   const simulate = async (cur) => {
     const targetCurr = cur || currency
@@ -236,6 +236,10 @@ function App() {
     setEngineActivity(`Order ${c.id} successfully reclaimed in 0.82s SLA. Capital secured.`)
     notify(`Successfully reclaimed ${fmt(c.amount, c.currency)}!`)
   }
+
+  useEffect(() => {
+    recoverRef.current = recover
+  })
 
   const batchRecover = async () => {
     setRunning(true)
@@ -287,23 +291,27 @@ function App() {
     notify('Settlement dispatched across banking rails!')
   }
 
-  const exportCsv = () => {
+  const pending = cases.filter(c => !c.is_recovered)
+  const resolved = cases.filter(c => c.is_recovered)
+
+  const exportCsv = useCallback(() => {
     const rows = [
       ['Payment ID', 'Customer Name', 'Currency', 'Amount', 'ISO Error Code', 'AI Policy Action', 'Status'],
       ...resolved.map(c => [c.id, c.customer_name, c.currency, c.amount, c.error_code, c.recommended_action, 'RECOVERED'])
     ]
     const blob = new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv' })
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `foura_audit_ledger_${Date.now()}.csv`; a.click()
+    const fileId = `${Math.floor(performance.now())}`
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `foura_audit_ledger_${fileId}.csv`
+    a.click()
     notify('Exported audit history to CSV!')
-  }
+  }, [resolved])
 
   const saveSettings = async () => {
     await axios.post(`${API}/settings`, settings)
     notify('Engine configuration persisted!')
   }
-
-  const pending = cases.filter(c => !c.is_recovered)
-  const resolved = cases.filter(c => c.is_recovered)
 
   const navItems = [
     { id: 'hub', icon: Zap, label: 'Recovery Hub' },
