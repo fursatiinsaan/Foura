@@ -758,13 +758,18 @@ async def update_settings(payload: SettingsPayload):
 
 # ─── INSTANT SETTLEMENT API ─────────────────────────────────────────────────────
 
+class SettlementPayload(BaseModel):
+    amount: float = 5000
+    currency: str = "USD"
+
 @app.post("/api/settlements/instant")
-async def instant_settlement(amount: float = 5000, currency: str = "USD"):
+async def instant_settlement(payload: SettlementPayload):
     return {
         "status": "initiated",
         "settlement_id": f"setl_{uuid.uuid4().hex[:12]}",
-        "amount": amount,
-        "currency": currency,
+        "amount": payload.amount,
+        "currency": payload.currency,
         "payout_eta": "Instant (under 2 minutes)",
         "destination": "Registered Bank Account (**4892)"
     }
+
