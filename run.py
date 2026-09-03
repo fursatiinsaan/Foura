@@ -64,8 +64,19 @@ def kill_ports():
 
 def setup_virtualenv():
     """Ensure python virtual environment and requirements are installed."""
-    if not os.path.exists(VENV_DIR) or not os.path.exists(PYTHON_EXEC):
+    venv_healthy = False
+    if os.path.exists(VENV_DIR) and os.path.exists(PYTHON_EXEC):
+        try:
+            res = subprocess.run([PYTHON_EXEC, "-c", "import sys"], capture_output=True)
+            if res.returncode == 0:
+                venv_healthy = True
+        except Exception:
+            venv_healthy = False
+
+    if not venv_healthy:
         print("📦 Creating virtual environment in ai_backend/venv...")
+        if os.path.exists(VENV_DIR):
+            shutil.rmtree(VENV_DIR, ignore_errors=True)
         subprocess.run([sys.executable, "-m", "venv", VENV_DIR], check=True)
 
     # Install / verify requirements
