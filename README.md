@@ -37,8 +37,7 @@
 10. [API & WebSocket Reference](#api--websocket-reference)
 11. [Deterministic Safety Guardrails](#deterministic-safety-guardrails)
 12. [Automated Verification & Test Suite](#automated-verification--test-suite)
-13. [Interview & 5-Minute Video Pitch Playbook](#interview--5-minute-video-pitch-playbook)
-14. [Razorpay Buildathon Track 03 Alignment](#razorpay-buildathon-track-03-alignment)
+13. [Razorpay Buildathon Track 03 Alignment](#razorpay-buildathon-track-03-alignment)
 
 ---
 
@@ -209,8 +208,8 @@ Foura/
 │   └── test_e2e_suite.py             # 11-point automated verification suite
 ├── run.py                            # Cross-platform self-healing orchestrator
 ├── start.sh                          # Bash entrypoint delegating to run.py
-├── FOURA_INTERVIEW_AND_DEMO_GUIDE.pdf # Publication-ready interview & video playbook
-├── FOURA_INTERVIEW_AND_DEMO_GUIDE.txt # Plaintext interview guide
+├── FOURA_INTERVIEW_AND_DEMO_GUIDE.pdf # Technical architecture & interview guide
+├── FOURA_INTERVIEW_AND_DEMO_GUIDE.txt # Plaintext technical architecture & interview guide
 └── package.json                      # Vite 8, React 19, Framer Motion
 ```
 
@@ -342,19 +341,6 @@ python3 tests/test_e2e_suite.py
 npm run lint    # Oxlint — 0 errors, 0 warnings
 npm run build   # Production Vite bundle — built in 125ms
 ```
-
----
-
-## 🎙️ Interview & 5-Minute Video Pitch Playbook
-
-For judges, evaluators, and team members preparing for demonstration:
-- **PDF Document**: [`FOURA_INTERVIEW_AND_DEMO_GUIDE.pdf`](FOURA_INTERVIEW_AND_DEMO_GUIDE.pdf)
-- **Plaintext Format**: [`FOURA_INTERVIEW_AND_DEMO_GUIDE.txt`](FOURA_INTERVIEW_AND_DEMO_GUIDE.txt)
-
-### Playbook Contents:
-1. **The 5 Fintech Engineering War Stories**: Real engineering obstacles solved during build (Async Ingestion Race Condition, AI Sandwich Hallucination Gating, Hard Decline UPI MPIN blocking, and Virtualenv self-healing).
-2. **Second-by-Second 5-Minute Video Script**: Exact on-screen actions and spoken narration from hook to wrap-up.
-3. **Judge Interview Q&A Master Cheat Sheet**: Pre-crafted, technically rigorous answers for fintech architecture, webhook idempotency, and regulatory compliance.
 
 ---
 
