@@ -31,12 +31,14 @@
 4. [Multi-Agent DAG Workflow](#multi-agent-dag-workflow)
 5. [Key Technical Innovations](#key-technical-innovations)
 6. [Quick Start (One-Command Boot)](#quick-start-one-command-boot)
-7. [API Configuration Guide](#api-configuration-guide)
-8. [Dashboard Walkthrough & Navigation](#dashboard-walkthrough--navigation)
-9. [API & WebSocket Reference](#api--websocket-reference)
-10. [Deterministic Safety Guardrails](#deterministic-safety-guardrails)
-11. [Automated Verification & Test Suite](#automated-verification--test-suite)
-12. [Razorpay Buildathon Track 03 Alignment](#razorpay-buildathon-track-03-alignment)
+7. [Repository File Structure](#repository-file-structure)
+8. [API Configuration Guide](#api-configuration-guide)
+9. [Dashboard Walkthrough & Navigation](#dashboard-walkthrough--navigation)
+10. [API & WebSocket Reference](#api--websocket-reference)
+11. [Deterministic Safety Guardrails](#deterministic-safety-guardrails)
+12. [Automated Verification & Test Suite](#automated-verification--test-suite)
+13. [Interview & 5-Minute Video Pitch Playbook](#interview--5-minute-video-pitch-playbook)
+14. [Razorpay Buildathon Track 03 Alignment](#razorpay-buildathon-track-03-alignment)
 
 ---
 
@@ -180,6 +182,40 @@ python3 run.py
 
 ---
 
+## Repository File Structure
+
+```
+Foura/
+├── src/
+│   ├── App.jsx                       # Master 3-Hub React dashboard (Framer Motion, Lucide)
+│   ├── index.css                     # Monochrome fintech styling & micro-animations
+│   ├── main.jsx                      # React 19 root entry
+│   └── utils/
+│       ├── soundEffects.js           # Web Audio API synthesizer (E5-B5-E6 triad chime)
+│       └── confetti.js               # Zero-dependency canvas particle blaster
+├── ai_backend/
+│   ├── app/
+│   │   ├── main.py                   # FastAPI routes, WebSocket manager & simulation engine
+│   │   ├── ai_engine.py              # LLaMA-3 via Groq cognitive diagnostician
+│   │   ├── guardrails.py             # Deterministic safety gate & RBI 3-retry cap
+│   │   ├── actions.py                # Razorpay live payment link SDK integration
+│   │   ├── database.py               # AsyncSessionLocal & SQLite engine
+│   │   ├── models.py                 # PaymentRecoveryEvent SQLAlchemy schema
+│   │   └── schemas.py                # Pydantic telemetry & recovery models
+│   ├── .env                          # Local credentials (Groq, Razorpay)
+│   ├── .env.example                  # Clean credential template
+│   └── requirements.txt              # FastAPI, Groq, Razorpay, SQLAlchemy
+├── tests/
+│   └── test_e2e_suite.py             # 11-point automated verification suite
+├── run.py                            # Cross-platform self-healing orchestrator
+├── start.sh                          # Bash entrypoint delegating to run.py
+├── FOURA_INTERVIEW_AND_DEMO_GUIDE.pdf # Publication-ready interview & video playbook
+├── FOURA_INTERVIEW_AND_DEMO_GUIDE.txt # Plaintext interview guide
+└── package.json                      # Vite 8, React 19, Framer Motion
+```
+
+---
+
 ## API Configuration Guide
 
 Foura runs out-of-the-box with intelligent fallback simulation. To enable live LLaMA-3 diagnostics and genuine Razorpay link generation:
@@ -306,6 +342,19 @@ python3 tests/test_e2e_suite.py
 npm run lint    # Oxlint — 0 errors, 0 warnings
 npm run build   # Production Vite bundle — built in 125ms
 ```
+
+---
+
+## 🎙️ Interview & 5-Minute Video Pitch Playbook
+
+For judges, evaluators, and team members preparing for demonstration:
+- **PDF Document**: [`FOURA_INTERVIEW_AND_DEMO_GUIDE.pdf`](FOURA_INTERVIEW_AND_DEMO_GUIDE.pdf)
+- **Plaintext Format**: [`FOURA_INTERVIEW_AND_DEMO_GUIDE.txt`](FOURA_INTERVIEW_AND_DEMO_GUIDE.txt)
+
+### Playbook Contents:
+1. **The 5 Fintech Engineering War Stories**: Real engineering obstacles solved during build (Async Ingestion Race Condition, AI Sandwich Hallucination Gating, Hard Decline UPI MPIN blocking, and Virtualenv self-healing).
+2. **Second-by-Second 5-Minute Video Script**: Exact on-screen actions and spoken narration from hook to wrap-up.
+3. **Judge Interview Q&A Master Cheat Sheet**: Pre-crafted, technically rigorous answers for fintech architecture, webhook idempotency, and regulatory compliance.
 
 ---
 
