@@ -54,10 +54,17 @@ def check_prerequisites():
 
 
 def kill_ports():
-    """Kill any stale processes on 8003 and 5173 on Unix/Mac."""
-    if sys.platform != "win32":
+    """Kill any stale processes on 8003 and 5173 across macOS, Linux, and Windows."""
+    if sys.platform == "win32":
+        for port in [8003, 5173]:
+            try:
+                cmd = f'for /f "tokens=5" %a in (\'netstat -aon ^| findstr :{port}\') do taskkill /f /pid %a'
+                subprocess.run(cmd, shell=True, capture_output=True)
+            except Exception:
+                pass
+    else:
         try:
-            subprocess.run("lsof -ti:8003 -ti:5173 | xargs kill -9 2>/dev/null || true", shell=True)
+            subprocess.run("lsof -ti:8003 -ti:5173 2>/dev/null | xargs kill -9 2>/dev/null || true", shell=True)
         except Exception:
             pass
 
@@ -118,7 +125,11 @@ def main():
         sys.exit(0)
 
     signal.signal(signal.SIGINT, shutdown)
-    signal.signal(signal.SIGTERM, shutdown)
+    if hasattr(signal, "SIGTERM"):
+        try:
+            signal.signal(signal.SIGTERM, shutdown)
+        except Exception:
+            pass
 
     print("\n⚡ Starting FastAPI Backend on http://localhost:8003...")
     backend_cmd = [PYTHON_EXEC, "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8003"]
