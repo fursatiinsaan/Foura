@@ -556,6 +556,13 @@ tbody td {
 }
 
 @media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .metrics { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: 1fr; }
+  .topbar-search input { width: 140px; }
+}
+
 /* Modal overlay & dialog */
 .modal-overlay {
   position: fixed;
@@ -607,4 +614,14 @@ tbody td {
   justify-content: space-between;
   align-items: center;
   background: #FAFAFA;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
 }
